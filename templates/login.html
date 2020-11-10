@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+
+        {% include 'error_msg.html' %}
+        <div class="form-group">
+            <label for="id">로그인 id를 입력하세요</label>
+            <input type="text" class="form-control" id="id" name="id" value={{form.id.data or ''}}>
+        </div>
+        <div class="form-group">
+            <label for="pw">비밀번호를 입력하세요.</label>
+            <input type="password" class="form-control" id="pw" name="pw">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}

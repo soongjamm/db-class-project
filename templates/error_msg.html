@@ -1,0 +1,7 @@
+<div class="alert alert-primary" role="alert">
+    <ul class="errors">
+        {% for field, error in form.errors.items() %}
+        <li>{{ form[field].label }}: {{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>
