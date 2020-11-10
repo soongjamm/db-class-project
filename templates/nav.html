@@ -7,7 +7,8 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
             {% if session.get("user") %}
-            <span class="navbar-text" style="color: darkblue;">이름 : {{session.get("user")["emp_name"]}} | </span>
+            <span class="navbar-text" style="color: darkblue;">이름 : {{session.get("user")["emp_name"]}}
+                {%if session.get("user")["auth"]==1%} (경영진){%endif%} | </span>
             <a class="nav-link" href="{{url_for('index')}}">Home <span class="sr-only">홈화면</span></a>
             <a class="nav-link" href="{{ url_for('logout') }}">로그아웃</a>
             <a class="nav-link" href="{{ url_for('edit_profile') }}">정보수정 </a>

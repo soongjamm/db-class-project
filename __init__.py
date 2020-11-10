@@ -2,7 +2,7 @@ import cx_Oracle
 
 from flask import Flask, render_template, request, url_for, redirect, jsonify, flash, g, session
 from sqlalchemy import create_engine, text, select
-from .forms import RegisterForm, UserLoginForm
+from .forms import RegisterForm, UserLoginForm, EditForm
 import cx_Oracle
 cx_Oracle.init_oracle_client(
     lib_dir="/Users/soongjamm/downloads/instantclient_19_8")
@@ -35,13 +35,32 @@ def register_ok(id, emp_name, emp_no):
             return False, "사원정보가 일치하지 않습니다.", dept_no
 
         # 중복 id 존재 여부 확인
-        stmt = text("select id from web_user where id = :id")
+        stmt = text("select * from web_user where id = :id")
         stmt = stmt.bindparams(id=id)
-        result = list(result)
-        if len(result) <= 0:
+        result = connection.execute(stmt)
+        result = [dict(row) for row in result]
+        result = result if len(result) == 0 else result[0]
+        if len(result) > 0:
             return False, "이미 존재하는 아이디 입니다.", dept_no
-    dept_no = result[0][4]
-    return True, "정상적인 입력입니다.", dept_no
+
+        # 이미 가입한 사원인지 확인
+        stmt = text("select * from web_user where emp_no = :emp_no")
+        stmt = stmt.bindparams(emp_no=emp_no)
+        result = connection.execute(stmt)
+        result = [dict(row) for row in result]
+        result = result if len(result) == 0 else result[0]
+        if len(result) > 0:
+            return False, "이미 가입한 사원입니다.", dept_no
+
+        stmt = text(
+            "select dept_no from employee where emp_no = :emp_no and emp_name = :emp_name")
+        stmt = stmt.bindparams(emp_name=emp_name, emp_no=emp_no)
+        result = connection.execute(stmt)
+        result = [dict(row) for row in result]
+        result = result if len(result) == 0 else result[0]
+        dept_no = result["dept_no"]
+
+        return True, "정상적인 입력입니다.", dept_no
 
 
 @app.route("/register", methods=("GET", "POST"))
@@ -127,20 +146,94 @@ def login():
 
                 session.clear()
                 session["user"] = res
-                print(session["user"])
-                # session[]
-                # session["emp_name"] =
                 return redirect(url_for("index"))
             else:
                 return render_template('login.html', form=form)
 
 
-@app.route("/edit-profile")
+def parsing_raw(list):
+    for i in range(len(list)):
+        list[i] = str(list[i]).replace('\'', '').replace(
+            '(', '').replace(')', '').replace(',', '')
+    return list
+
+
+@app.route("/edit-profile", methods=("GET", "POST"))
 def edit_profile():
-    return "아직이용"
+    # 최종학력, 직군 리스트
+    with engine.connect() as connection:
+        stmt = text("select dept_name from dept")
+        result = connection.execute(stmt)
+        dept_list = list(result)
+        for i in range(len(dept_list)):
+            dept_list[i] = str(dept_list[i]).replace('\'', '').replace(
+                '(', '').replace(')', '').replace(',', '')
+
+        stmt = text("select edu_name from education")
+        result = connection.execute(stmt)
+        edu_list = list(result)
+        for i in range(len(edu_list)):
+            edu_list[i] = str(edu_list[i]).replace('\'', '').replace(
+                '(', '').replace(')', '').replace(',', '')
+
+    if request.method == 'GET':
+        if session["user"]:
+            id = session.get("user")["id"]
+            emp_info = get_emp_info(id)
+            form = EditForm(
+                id=emp_info["id"],
+                emp_no=emp_info["emp_no"],
+                name=emp_info["name"],
+                rrn=emp_info["rrn"],
+                education=emp_info["education"],
+                dept=emp_info["dept"]
+            )
+
+        return render_template('edit.html', form=form, dept_list=dept_list, edu_list=edu_list)
+
+    elif request.method == 'POST':
+        form = EditForm()
+        if form.validate_on_submit:
+            with engine.connect() as connection:
+                # 직군번호, 학력번호 가져오기
+                dept_name = form.dept.data
+                edu_name = form.education.data
+
+                stmt = text("select dept_no from dept where dept_name=:dept_name").bindparams(
+                    dept_name=dept_name)
+                result = connection.execute(stmt)
+                dept_no = parsing_raw(list(result))
+                dept_no = int(dept_no[0])
+
+                stmt = text("select edu_no from education where edu_name=:edu_name").bindparams(
+                    edu_name=edu_name)
+                result = connection.execute(stmt)
+                edu_no = parsing_raw(list(result))
+                edu_no = int(edu_no[0])
+
+                # 업데이트
+                stmt = text("update employee set emp_name=:emp_name, edu_no=:edu_no, dept_no=:dept_no where emp_no=:emp_no").bindparams(
+                    emp_name=form.name.data, edu_no=edu_no, dept_no=dept_no, emp_no=form.emp_no.data)
+                result = connection.execute(stmt)
+
+            flash("성공적으로 변경하였습니다.")
+            return redirect(url_for('index'))
+        else:
+            return render_template('edit.html', form=form, dept_list=dept_list, edu_list=edu_list)
 
 
-@app.route("/logout")
+def get_emp_info(id):
+    with engine.connect() as connection:
+        stmt = text(
+            "select * from (select emp_name as name, emp_no, rrn, education.edu_name as education, dept.dept_name as dept from employee, education, dept where employee.edu_no=education.edu_no and employee.dept_no=dept.dept_no) emp, web_user where web_user.emp_no=emp.emp_no")
+        result = connection.execute(stmt)
+        result = [dict(row) for row in result]
+        result = result if len(result) == 0 else result[0]
+        print(result, type(result), "아아아아아앙밍너마리ㅓㅏ")
+        return result
+
+
+@ app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))

@@ -18,3 +18,13 @@ class UserLoginForm(FlaskForm):
     id = StringField("로그인 아이디", validators=[
         DataRequired(), Length(min=3, max=30)])
     pw = PasswordField("비밀번호", validators=[DataRequired()])
+
+
+class EditForm(FlaskForm):
+    id = StringField("id")
+    emp_no = IntegerField("사원번호")
+    name = StringField("이름", validators=[DataRequired()])
+    dept = StringField("직군", validators=[DataRequired()])
+    rrn = StringField("주민등록번호", validators=[
+                      DataRequired(), Length(min=13, max=14)])
+    education = StringField("학력", validators=[DataRequired()])

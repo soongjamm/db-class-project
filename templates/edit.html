@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% include 'error_msg.html' %}
+        <div class="form-group">
+            <label for="id">id</label>
+            <h5 id="id" name="id">{{form.id.data}}</h5>
+        </div>
+        <div class="form-group">
+            <label for="emp_no">사원번호</label>
+            <h5 id="emp_no" name="emp_no">{{form.emp_no.data}}</h5>
+        </div>
+        <div class="form-group">
+            <label for="name">이름</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{form.name.data or ''}}">
+        </div>
+        <div class="form-group">
+            <label for="education">최종학력</label>
+            <select name="education" id="education">
+                {% if edu_list %}
+                {% for edu in edu_list %}
+                <option value="{{edu}}" {%if edu==form.education.data%}selected{%endif%}>{{edu}}</option>
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dept">직군</label>
+            <select name="dept" id="dept">
+                {% if dept_list %}
+                {% for dept in dept_list %}
+                <option value="{{dept}}" {%if dept==form.dept.data%}selected{%endif%}>{{dept}}</option>
+                {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+        <input type="hidden" name="id" value="{{form.id.data}}">
+        <input type="hidden" name="emp_no" value="{{form.emp_no.data}}">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}
