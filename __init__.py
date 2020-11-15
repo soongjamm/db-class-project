@@ -3,12 +3,19 @@ from .forms import RegisterForm, UserLoginForm, EditForm
 from sqlalchemy import create_engine, text, select
 from flask import Flask, render_template, request, url_for, redirect, jsonify, flash, g, session
 import os
+from .filter import format_datetime
+
 ORACLE_LIB_DIR = os.path.dirname(__name__) + "instantclient_19_8"
-DB_URI = "oracle://system:oracle@127.0.0.1:1521/xe"
 cx_Oracle.init_oracle_client(lib_dir=ORACLE_LIB_DIR)
+DB_URI = "oracle://system:oracle@127.0.0.1:1521/xe"
 engine = create_engine(DB_URI, echo=True)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev"
+
+
+app.jinja_env.filters[
+    "datetime"
+] = format_datetime
 
 
 @app.route("/")
@@ -233,23 +240,41 @@ def logout():
     return redirect(url_for("index"))
 
 
-@app.route("/inquire", methods=("POST", ))
+@app.route("/inquire", methods=("GET", "POST"))
 def inquire():
+    if not session.get("user") or session.get("user")["auth"]:
+        flash("조회 권한이 없습니다.")
+        return redirect(url_for('index'))
+
     if request.method == 'POST':
         search = request.form.get('search')
         if search == 'current_proj':
             with engine.connect() as connection:
                 stmt = text(
-                    "SELECT proj_emp.emp_no, proj_emp.proj_no, proj_emp.duty_no, proj_emp.put_day, proj_emp.finish_day,employee.emp_name,project.proj_name FROM proj_emp JOIN employee ON proj_emp.emp_no = employee.emp_no JOIN project ON proj_emp.proj_no = project.proj_no")
+                    "SELECT proj_emp.emp_no, employee.emp_name,proj_emp.proj_no, project.proj_name, duty.duty_name, proj_emp.put_day, proj_emp.finish_day FROM proj_emp JOIN employee ON proj_emp.emp_no = employee.emp_no JOIN project ON proj_emp.proj_no = project.proj_no join duty on proj_emp.duty_no = duty.duty_no")
                 result = connection.execute(stmt)
+                result = list(result)
                 stmt = text(
                     "SELECT proj_name, count(*) FROM proj_emp JOIN employee ON proj_emp.emp_no = employee.emp_no JOIN project ON proj_emp.proj_no = project.proj_no group by proj_name")
                 count = connection.execute(stmt)
             return render_template("result_current.html", result=result, count=count)
-        elif search == '':
-            return "yet"
-            # return render_template("inquire_result.html")
-        else:
-            print(search)
+        elif search == 'bydate':
+            date = request.form.get('date').replace('T', '-')
+            date = list(map(int, date.split('-')[:3]))
+            from datetime import datetime
+            date = datetime(date[0], date[1], date[2])
+            # date = '/'.join(date)
+            with engine.connect() as connection:
+                stmt = text("select manage.proj_no , project.proj_name, manage.emp_no ,manage.emp_name, manage.duty_no, manage.put_day, manage.finish_day , duty.duty_name from manage JOIN project ON manage.proj_no =  project.proj_no  JOIN duty ON manage.duty_no =  duty.duty_no where :date between manage.put_day and manage.finish_day").bindparams(date=date)
+                result = connection.execute(stmt)
+            return render_template("result_datetime.html", result=result)
+        elif search == 'bynum':
+            num = int(request.form.get('num'))
+            with engine.connect() as connection:
+                stmt = text("SELECT project.proj_no, project.proj_name, employee.emp_no, employee.emp_name, eval_kinds.eval_kinds, eval_content.perfo_grade, eval_content.perfo_content, eval_content.comm_grade, eval_content.comm_content FROM eval JOIN project ON eval.eval_cust_no = project.proj_no JOIN employee ON eval.subject_no = employee.emp_no JOIN eval_content ON eval_content.eval_no = eval.eval_no JOIN eval_kinds on eval_kinds.eval_no = eval.eval_no where employee.emp_no = :num").bindparams(num=num)
+                result = connection.execute(stmt)
+                result = list(result)
+            return render_template("result_empno.html", result=result)
 
-    return render_template("inquire.html")
+    else:
+        return render_template("inquire.html")

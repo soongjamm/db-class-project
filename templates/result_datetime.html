@@ -1,34 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container my-5">
-    <!-- 프로젝트별 인원 -->
     <table class="table">
+        <h5>2.경영진은 과거의 특정 시점을 검색하여 그 기간에 실행된 프로젝트와 프로젝트 참여 직원, 직원의 참여 직무, 투입과 종료일자를 조회할 수 있다.</h5><br>
         <thead>
             <tr>
-                <th scope="col">프로젝트명</th>
-                <th scope="col">투입인원수</th>
-            </tr>
-        </thead>
-        <tbody>
-            {%if count %}
-            {% for c in count %}
-            <tr>
-                <td>{{c[0]}}</th>
-                <td>{{c[1]}}명</td>
-            </tr>
-            {% endfor %}
-            {%endif%}
-        </tbody>
-    </table>
-    <br>
-    <!-- 현재 프로젝트 조회 -->
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">사원번호</th>
-                <th scope="col">사원이름</th>
                 <th scope="col">프로젝트번호</th>
                 <th scope="col">프로젝트이름</th>
+                <th scope="col">사원번호</th>
+                <th scope="col">사원이름</th>
                 <th scope="col">직무</th>
                 <th scope="col">프로젝트 투입일</th>
                 <th scope="col">프로젝트 종료일</th>

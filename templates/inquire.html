@@ -3,23 +3,32 @@
 <div class="container my-5">
     <!-- 현재 프로젝트 조회 -->
     <form method="post" enctype="multipart/form-data">
-        <div class="form-group">
+        <div class="form-group my-5">
+            <p><strong>1.경영진은 현재 프로젝트에 직원들이 몇 명이나 투입되어 있으며 어떤 직무를 수행하고 있고, 각직원의 투입 일자가 언제 인지 검색할 수 있다.</strong></p>
             <label for="search">현재 프로젝트 조회</label>
             <button id="search" name="search" value="current_proj">조회</button>
         </div>
     </form>
     <!-- 경영진은 과거의 특정 시점을 검색 -->
     <form method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="search">사원번호</label>
-            <h5 id="search" name="tasak">2</h5>
+        <div class="form-group my-5">
+            <p><strong>2.경영진은 과거의 특정 시점을 검색하여 그 기간에 실행된 프로젝트와 프로젝트 참여 직원, 직원의 참여 직무, 투입과 종료일자를 조회할 수 있다.</strong></p>
+            <label for="date">날짜 입력</label>
+            <input type="datetime-local" id="date" name="date" min="2018-06-07T00:00" max="2200-06-14T00:00">
+            <span class="validity"></span>
+            <button id="search" name="search" value="bydate">조회</button>
         </div>
     </form>
     <!-- 특정 직원의 직원번호를 입력하여 현재까지 그 직원이 받았던 모든 평가와 평가내용을 확인  -->
     <form method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="tasak">이름</label>
-            <input type="text" class="form-control" id="search" name="search" value="3">
+        <div class="form-group my-5">
+            <p><strong>
+                    3. 경영진은 인센티브 지급에 반영하기 위해, 특정 직원의 직원번호를 입력하여 현재까지 그 직원이 받았던 모든 평가와 평가내용을 확인할 수 있다.
+                </strong>
+            </p>
+            <label for="search">사원 번호 입력</label>
+            <input type="text" id="num" name="num">
+            <button id="search" name="search" value="bynum">조회</button>
         </div>
     </form>
 </div>
