@@ -3,6 +3,9 @@
 <div class="container my-5">
     <table class="table">
         <h5>2.경영진은 과거의 특정 시점을 검색하여 그 기간에 실행된 프로젝트와 프로젝트 참여 직원, 직원의 참여 직무, 투입과 종료일자를 조회할 수 있다.</h5><br>
+        {% if date %}
+        입력받은 날짜 : {{date|datetime}}
+        {% endif %}
         <thead>
             <tr>
                 <th scope="col">프로젝트번호</th>

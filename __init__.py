@@ -242,7 +242,8 @@ def logout():
 
 @app.route("/inquire", methods=("GET", "POST"))
 def inquire():
-    if not session.get("user") or session.get("user")["auth"]:
+    if not session.get("user") or session.get("user")["auth"] is not 1:
+        print(session.get("user")["auth"])
         flash("조회 권한이 없습니다.")
         return redirect(url_for('index'))
 
@@ -267,14 +268,14 @@ def inquire():
             with engine.connect() as connection:
                 stmt = text("select manage.proj_no , project.proj_name, manage.emp_no ,manage.emp_name, manage.duty_no, manage.put_day, manage.finish_day , duty.duty_name from manage JOIN project ON manage.proj_no =  project.proj_no  JOIN duty ON manage.duty_no =  duty.duty_no where :date between manage.put_day and manage.finish_day").bindparams(date=date)
                 result = connection.execute(stmt)
-            return render_template("result_datetime.html", result=result)
+            return render_template("result_datetime.html", result=result, date=date)
         elif search == 'bynum':
             num = int(request.form.get('num'))
             with engine.connect() as connection:
                 stmt = text("SELECT project.proj_no, project.proj_name, employee.emp_no, employee.emp_name, eval_kinds.eval_kinds, eval_content.perfo_grade, eval_content.perfo_content, eval_content.comm_grade, eval_content.comm_content FROM eval JOIN project ON eval.eval_cust_no = project.proj_no JOIN employee ON eval.subject_no = employee.emp_no JOIN eval_content ON eval_content.eval_no = eval.eval_no JOIN eval_kinds on eval_kinds.eval_no = eval.eval_no where employee.emp_no = :num").bindparams(num=num)
                 result = connection.execute(stmt)
                 result = list(result)
-            return render_template("result_empno.html", result=result)
+            return render_template("result_empno.html", result=result, empno=num)
 
     else:
         return render_template("inquire.html")
