@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <!-- 프로젝트별 인원 -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">프로젝트명</th>
+                <th scope="col">투입인원수</th>
+            </tr>
+        </thead>
+        <tbody>
+            {%if count %}
+            {% for c in count %}
+            <tr>
+                <td>{{c[0]}}</th>
+                <td>{{c[1]}}명</td>
+            </tr>
+            {% endfor %}
+            {%endif%}
+        </tbody>
+    </table>
+    <!-- 현재 프로젝트 조회 -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Handle</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">1</th>
+                <td>Mark</td>
+                <td>Otto</td>
+                <td>@mdo</td>
+            </tr>
+            <tr>
+                <th scope="row">2</th>
+                <td>Jacob</td>
+                <td>Thornton</td>
+                <td>@fat</td>
+            </tr>
+            <tr>
+                <th scope="row">3</th>
+                <td>Larry</td>
+                <td>the Bird</td>
+                <td>@twitter</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

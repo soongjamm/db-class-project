@@ -1,25 +1,19 @@
 import cx_Oracle
-
-from flask import Flask, render_template, request, url_for, redirect, jsonify, flash, g, session
-from sqlalchemy import create_engine, text, select
 from .forms import RegisterForm, UserLoginForm, EditForm
-import cx_Oracle
-cx_Oracle.init_oracle_client(
-    lib_dir="/Users/soongjamm/downloads/instantclient_19_8")
-engine = create_engine(
-    "oracle://system:oracle@127.0.0.1:1521/xe", echo=True)
+from sqlalchemy import create_engine, text, select
+from flask import Flask, render_template, request, url_for, redirect, jsonify, flash, g, session
+import os
+ORACLE_LIB_DIR = os.path.dirname(__name__) + "instantclient_19_8"
+DB_URI = "oracle://system:oracle@127.0.0.1:1521/xe"
+cx_Oracle.init_oracle_client(lib_dir=ORACLE_LIB_DIR)
+engine = create_engine(DB_URI, echo=True)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "dev"
 
 
 @app.route("/")
 def index():
-    with engine.connect() as connection:
-        result = connection.execute(text("select * from employee"))
-        res_dict = list(result)
-        # for row in result:
-        #     print("emp_name:", row['emp_name'], type(result))
-    return render_template('index.html', emp_list=res_dict)
+    return render_template('index.html')
 
 
 def register_ok(id, emp_name, emp_no):
@@ -70,19 +64,20 @@ def register():
         return render_template('register.html', form=form)
     elif request.method == "POST":
         if form.validate_on_submit():
-            # form data 생성
+            # form data 분해
             id = form.id.data
             pw = form.pw.data
             emp_no = form.emp_no.data
             emp_name = form.emp_name.data
 
             # 계정 생성 가능 여부 확인
-            # ok==True이면 생성
             ok, msg, dept_no = register_ok(id, emp_name, emp_no)
+            # 생성
             if ok:
                 auth = 0
                 if dept_no == 15:
                     auth = 1
+
                 # 임직원(dept_no==15)이면 권한(1) 줘야 함.
                 with engine.connect() as connection:
                     stmt = text(
@@ -229,11 +224,32 @@ def get_emp_info(id):
         result = connection.execute(stmt)
         result = [dict(row) for row in result]
         result = result if len(result) == 0 else result[0]
-        print(result, type(result), "아아아아아앙밍너마리ㅓㅏ")
         return result
 
 
-@ app.route("/logout")
+@app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))
+
+
+@app.route("/inquire", methods=("POST", ))
+def inquire():
+    if request.method == 'POST':
+        search = request.form.get('search')
+        if search == 'current_proj':
+            with engine.connect() as connection:
+                stmt = text(
+                    "SELECT proj_emp.emp_no, proj_emp.proj_no, proj_emp.duty_no, proj_emp.put_day, proj_emp.finish_day,employee.emp_name,project.proj_name FROM proj_emp JOIN employee ON proj_emp.emp_no = employee.emp_no JOIN project ON proj_emp.proj_no = project.proj_no")
+                result = connection.execute(stmt)
+                stmt = text(
+                    "SELECT proj_name, count(*) FROM proj_emp JOIN employee ON proj_emp.emp_no = employee.emp_no JOIN project ON proj_emp.proj_no = project.proj_no group by proj_name")
+                count = connection.execute(stmt)
+            return render_template("result_current.html", result=result, count=count)
+        elif search == '':
+            return "yet"
+            # return render_template("inquire_result.html")
+        else:
+            print(search)
+
+    return render_template("inquire.html")

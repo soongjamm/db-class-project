@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-5">
+    <!-- 현재 프로젝트 조회 -->
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="search">현재 프로젝트 조회</label>
+            <button id="search" name="search" value="current_proj">조회</button>
+        </div>
+    </form>
+    <!-- 경영진은 과거의 특정 시점을 검색 -->
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="search">사원번호</label>
+            <h5 id="search" name="tasak">2</h5>
+        </div>
+    </form>
+    <!-- 특정 직원의 직원번호를 입력하여 현재까지 그 직원이 받았던 모든 평가와 평가내용을 확인  -->
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="tasak">이름</label>
+            <input type="text" class="form-control" id="search" name="search" value="3">
+        </div>
+    </form>
+</div>
+{% endblock %}
